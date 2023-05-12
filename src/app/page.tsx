@@ -1,113 +1,360 @@
-import Image from 'next/image'
+"use client";
+import Input from "@/components/inputProps";
+import { useState } from "react";
+import { mobLabelList } from "../components/labels";
 
 export default function Home() {
+  const [textInput, setTextInput] = useState<any>([]);
+  const [currentLine, setCurrentLine] = useState<any>([]);
+  const [currentLineIndex, setCurrentLineIndex] = useState<number | null>(null);
+  const [isChanged, setIsChanged] = useState(false);
+  const [mobDataType, setMobDataType] = useState(1);
+
+  const [filter, setFilter] = useState<any>([]);
+  const [isFiltered, setIsFiltered] = useState(false);
+
+  function textImport(e: any) {
+    const input = e?.target;
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      const result: any = reader?.result?.toString().split("\n");
+      const array = result?.filter((e: any) => e != "\r" && e != "");
+
+      const itemData = array[9]?.replaceAll("/", "").split(",");
+
+      if (itemData.length != 58) {
+        alert("Invalid Mob_db.txt lines!");
+        return;
+      }
+
+      setTextInput(array);
+      setIsChanged(false);
+    };
+    reader.readAsText(input.files[0], "ISO-8859-1");
+  }
+
+  function downloadDBTxt(content: Array<String>) {
+    const arr = content.join("\r");
+    const link = document.createElement("a");
+
+    const file = new Blob([arr], { type: "text/plain" });
+
+    link.href = URL.createObjectURL(file);
+
+    link.download = "mob_db.txt";
+
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    setIsChanged(false);
+  }
+
+  function selectLine(item: string, index: number) {
+    const itemData = item.replaceAll("/", "").split(",");
+
+    if (isNaN(parseInt(itemData[0]))) {
+      setCurrentLine("");
+      setCurrentLineIndex(null);
+      return;
+    }
+    setCurrentLine(itemData);
+    setCurrentLineIndex(index);
+  }
+
+  function saveChanges() {
+    if (currentLineIndex == null) return;
+    const tmp = [...textInput];
+
+    tmp[currentLineIndex] = currentLine.join(",");
+    setTextInput(tmp);
+    setIsChanged(true);
+    setIsFiltered(false);
+    alert("Saved");
+  }
+
+  function addNewMob() {
+    if (currentLine.length === 0) return;
+
+    const newMobID = currentLine[0];
+    let mobExists = false;
+
+    textInput.find((item: string) => {
+      const id = item.split(",")[0];
+
+      if (newMobID === id) {
+        mobExists = true;
+      }
+    });
+
+    if (mobExists) {
+      alert("You cant add a new mob with an already used ID!");
+      return;
+    }
+
+    let newMobData = [...currentLine];
+    const blankSpaces = 58 - currentLine.length;
+
+    for (let i = 0; i < blankSpaces; i++) {
+      newMobData.push("");
+    }
+    const tmp = [...textInput];
+    const newMob = newMobData.join(",");
+
+    tmp.push(newMob);
+
+    setTextInput(tmp);
+    setIsFiltered(false);
+    alert("Mob added at the end of the db!");
+
+    setCurrentLine("");
+    setCurrentLineIndex(null);
+    console.log(currentLine);
+  }
+
+  function removeMob() {
+    if (!currentLineIndex) return;
+
+    const tmp = [...textInput];
+    tmp.splice(currentLineIndex, 1);
+
+    setTextInput(tmp);
+
+    setCurrentLine("");
+    setCurrentLineIndex(null);
+
+    setIsFiltered(false);
+    alert("Mob removed from the db!");
+  }
+
+  function filterMob(value: string) {
+    if (!value) {
+      setIsFiltered(false);
+      return;
+    }
+
+    const filteredArr = textInput.filter((val: any) => {
+      return val.toLowerCase().includes(value.toLowerCase());
+    });
+    setFilter(filteredArr);
+    setIsFiltered(true);
+    console.log(filter);
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <main className="h-full w-full py-20 px-10 flex flex-col gap-4 items-center text-white text-sm">
+      <h1 className="font-pixel text-5xl mb-4 text-white drop-shadow-[0.2rem_0.2rem_#2e2649]">
+        Mob_db.txt
+      </h1>
+
+      <div className="flex items-center justify-center gap-x-10 w-full h-[600px]">
+        <section
+          id="currentTable"
+          className="xl:w-[1000px] w-3/5 h-full bg-pixel-orange pt-3"
+        >
+          <div className="bg-pixel-grey h-full w-full p-4">
+            <form id="itemsMenuTxt" className="flex items-center">
+              <label
+                htmlFor="textFile"
+                className="font-pixel flex h-10 justify-center items-center px-3 bg-pixel-orange cursor-pointer hover:bg-pixel-orange/70"
+              >
+                SELECT
+              </label>
+              <input
+                className="hidden"
+                type="file"
+                name="file"
+                id="textFile"
+                onChange={(e) => textImport(e)}
+              />
+              <input
+                type="text"
+                name="filter"
+                id="filter"
+                onChange={(e) => filterMob(e.target.value)}
+                className="h-10 border-none w-[20vw] ml-auto focus:outline-none text-black p-3"
+              />
+              <div className="ml-3">
+                <button
+                  type="reset"
+                  className=" h-10 font-pixel px-4 bg-pixel-orange hover:bg-pixel-orange/70"
+                  onClick={() => removeMob()}
+                >
+                  -
+                </button>
+                <button
+                  type="reset"
+                  className="h-10 font-pixel px-4 bg-pixel-orange ml-3 hover:bg-pixel-orange/70"
+                  onClick={() => addNewMob()}
+                >
+                  +
+                </button>
+              </div>
+            </form>
+            <div
+              id="itemList"
+              className="h-[90%] w-full overflow-x-hidden block mt-4"
+            >
+              {isFiltered
+                ? filter.map((item: string, index: number) => (
+                    <li
+                      key={`linha-${index}`}
+                      style={
+                        currentLineIndex === index
+                          ? { backgroundColor: "#eb836a" }
+                          : {}
+                      }
+                      onClick={() => selectLine(item, index)}
+                      className="cursor-pointer hover:bg-zinc-600 whitespace-nowrap list-none"
+                    >
+                      {item}
+                    </li>
+                  ))
+                : textInput.map((item: string, index: number) => (
+                    <li
+                      key={`linha-${index}`}
+                      style={
+                        currentLineIndex === index
+                          ? { backgroundColor: "#eb836a" }
+                          : {}
+                      }
+                      onClick={() => selectLine(item, index)}
+                      className="cursor-pointer hover:bg-zinc-600 whitespace-nowrap list-none"
+                    >
+                      {item}
+                    </li>
+                  ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="editTable"
+          className="xl:w-[670px] w-2/5 h-full text-sm text-white  bg-pixel-orange pt-3 "
+        >
+          <div className="bg-pixel-grey w-full h-full p-4 relative">
+            <button
+              className="hover:bg-gradient-to-r from-inherit absolute h-10 font-pixel px-3 bg-pixel-orange right-4 hover:bg-pixel-orange/70"
+              onClick={() => saveChanges()}
+            >
+              SAVE
+            </button>
+            <div className="h-[90%] w-full overflow-x-hidden flex flex-col">
+              <h3
+                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                onClick={() =>
+                  mobDataType === 1 ? setMobDataType(0) : setMobDataType(1)
+                }
+              >
+                Primary Stats
+              </h3>
+              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
+                {mobLabelList.map((item: string, index: number) => (
+                  <span
+                    key={`mobPrimaryStats-${index}`}
+                    style={
+                      mobDataType === 1
+                        ? { display: "block" }
+                        : { display: "none" }
+                    }
+                  >
+                    {index <= 19 && (
+                      <Input
+                        name={item}
+                        value={isChanged ? "" : currentLine[index]}
+                        label={item}
+                        handleChange={(value) => {
+                          const tmp = [...currentLine];
+
+                          tmp[index] = value;
+                          setCurrentLine(tmp);
+                        }}
+                      />
+                    )}
+                  </span>
+                ))}
+              </div>
+
+              <h3
+                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                onClick={() =>
+                  mobDataType === 2 ? setMobDataType(0) : setMobDataType(2)
+                }
+              >
+                Secondary Stats
+              </h3>
+              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
+                {mobLabelList.map((item: string, index: number) => (
+                  <span
+                    key={`mobSecondaryStats-${index}`}
+                    style={
+                      mobDataType === 2
+                        ? { display: "block" }
+                        : { display: "none" }
+                    }
+                  >
+                    {index > 19 && index <= 37 && (
+                      <Input
+                        name={item}
+                        value={isChanged ? "" : currentLine[index]}
+                        label={item}
+                        handleChange={(value) => {
+                          const tmp = [...currentLine];
+
+                          tmp[index] = value;
+                          setCurrentLine(tmp);
+                        }}
+                      />
+                    )}
+                  </span>
+                ))}
+              </div>
+              <h3
+                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                onClick={() =>
+                  mobDataType === 3 ? setMobDataType(0) : setMobDataType(3)
+                }
+              >
+                Drops
+              </h3>
+              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
+                {mobLabelList.map((item: string, index: number) => (
+                  <span
+                    key={`mobPrimaryData-${index}`}
+                    style={
+                      mobDataType === 3
+                        ? { display: "block" }
+                        : { display: "none" }
+                    }
+                  >
+                    {index > 37 && (
+                      <Input
+                        name={item}
+                        value={currentLine[index]}
+                        label={item}
+                        handleChange={(value) => {
+                          const tmp = [...currentLine];
+
+                          tmp[index] = value;
+                          setCurrentLine(tmp);
+                        }}
+                      />
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      {isChanged && (
+        <button
+          className="h-10 my-4 text-4xl font-pixel px-3 text-pixel-orange ml-3 hover:text-pixel-orange/70"
+          onClick={() => downloadDBTxt(textInput)}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+          Download TXT
+        </button>
+      )}
     </main>
-  )
+  );
 }
