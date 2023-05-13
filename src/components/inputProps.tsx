@@ -15,7 +15,7 @@ const Input: FC<InputProps> = ({ name, label, value, handleChange }) => {
       </label>
       <input
         type="text"
-        defaultValue={value}
+        value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           handleChange(e.target.value);
         }}
