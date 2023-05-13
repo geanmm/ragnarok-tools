@@ -8,6 +8,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input: FC<InputProps> = ({ name, label, value, handleChange }) => {
+  console.log(value);
   return (
     <div className="input-wrapper flex items-center pb-1">
       <label htmlFor={name} className="w-[90px] font-semibold">
@@ -15,7 +16,7 @@ const Input: FC<InputProps> = ({ name, label, value, handleChange }) => {
       </label>
       <input
         type="text"
-        value={value}
+        value={value ?? ""}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           handleChange(e.target.value);
         }}

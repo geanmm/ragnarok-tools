@@ -54,7 +54,7 @@ export default function Home() {
     const itemData = item.replaceAll("/", "").split(",");
 
     if (isNaN(parseInt(itemData[0]))) {
-      setCurrentLine("");
+      setCurrentLine([]);
       setCurrentLineIndex(null);
       return;
     }
@@ -71,60 +71,71 @@ export default function Home() {
     setIsChanged(true);
     setIsFiltered(false);
     alert("Saved");
+    setCurrentLine([]);
+    setCurrentLineIndex(null);
   }
 
   function addNewMob() {
-    if (currentLine.length === 0) return;
+    try {
+      if (currentLine.length === 0) return;
 
-    const newMobID = currentLine[0];
-    let mobExists = false;
+      const newMobID = currentLine[0];
+      let mobExists = false;
 
-    textInput.find((item: string) => {
-      const id = item.split(",")[0];
+      textInput.find((item: string) => {
+        const id = item.split(",")[0];
 
-      if (newMobID === id) {
-        mobExists = true;
+        if (newMobID === id) {
+          mobExists = true;
+        }
+      });
+
+      if (mobExists) {
+        alert("You cant add a new mob with an already used ID!");
+        return;
       }
-    });
 
-    if (mobExists) {
-      alert("You cant add a new mob with an already used ID!");
-      return;
+      let newMobData = [...currentLine.map((item: string) => item ?? "")];
+
+      const blankSpaces = 58 - currentLine.length;
+
+      for (let i = 0; i < blankSpaces; i++) {
+        newMobData.push("");
+      }
+
+      const tmp = [...textInput];
+      const newMob = newMobData.join(",");
+
+      tmp.push(newMob);
+
+      setTextInput(tmp);
+      setIsFiltered(false);
+      alert("Mob added at the end of the db!");
+
+      setCurrentLine([]);
+      setCurrentLineIndex(null);
+    } catch (error) {
+      console.log(error);
     }
-
-    let newMobData = [...currentLine];
-    const blankSpaces = 58 - currentLine.length;
-
-    for (let i = 0; i < blankSpaces; i++) {
-      newMobData.push("");
-    }
-    const tmp = [...textInput];
-    const newMob = newMobData.join(",");
-
-    tmp.push(newMob);
-
-    setTextInput(tmp);
-    setIsFiltered(false);
-    alert("Mob added at the end of the db!");
-
-    setCurrentLine("");
-    setCurrentLineIndex(null);
-    console.log(currentLine);
   }
 
   function removeMob() {
-    if (!currentLineIndex) return;
+    try {
+      if (currentLineIndex === null) return;
 
-    const tmp = [...textInput];
-    tmp.splice(currentLineIndex, 1);
+      const tmp = [...textInput];
+      tmp.splice(currentLineIndex, 1);
 
-    setTextInput(tmp);
+      setTextInput(tmp);
 
-    setCurrentLine("");
-    setCurrentLineIndex(null);
+      setCurrentLine([]);
+      setCurrentLineIndex(null);
 
-    setIsFiltered(false);
-    alert("Mob removed from the db!");
+      setIsFiltered(false);
+      alert("Mob removed from the db!");
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   function filterMob(value: string) {
@@ -218,7 +229,9 @@ export default function Home() {
                           ? { backgroundColor: "#eb836a" }
                           : {}
                       }
-                      onClick={() => selectLine(item, index)}
+                      onClick={() => {
+                        selectLine(item, index);
+                      }}
                       className="cursor-pointer hover:bg-zinc-600 whitespace-nowrap list-none"
                     >
                       {item}
@@ -267,6 +280,8 @@ export default function Home() {
                           const tmp = [...currentLine];
 
                           tmp[index] = value;
+                          console.log(tmp);
+
                           setCurrentLine(tmp);
                         }}
                       />
@@ -336,6 +351,7 @@ export default function Home() {
                           const tmp = [...currentLine];
 
                           tmp[index] = value;
+                          console.log(tmp);
                           setCurrentLine(tmp);
                         }}
                       />
