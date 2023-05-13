@@ -1,5 +1,5 @@
 import "./globals.css";
-import { pixel, mulish } from "../fonts/fonts";
+import { pixel, mulish } from "../components/fonts";
 
 export const metadata = {
   title: "Ragnarok Tools",
