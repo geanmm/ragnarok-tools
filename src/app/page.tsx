@@ -62,80 +62,86 @@ export default function Home() {
     setCurrentLineIndex(index);
   }
 
+  function inputHandleChange(value: string, index: any) {
+    const tmpItem = [...currentLine];
+
+    tmpItem[index] = value;
+
+    setCurrentLine(tmpItem);
+  }
+
   function saveChanges() {
     if (currentLineIndex == null) return;
     const tmp = [...textInput];
 
     tmp[currentLineIndex] = currentLine.join(",");
+
     setTextInput(tmp);
-    setIsChanged(true);
-    setIsFiltered(false);
-    alert("Saved");
     setCurrentLine([]);
     setCurrentLineIndex(null);
+    setIsFiltered(false);
+
+    alert("Mob changed");
+    !isChanged && setIsChanged(true);
   }
 
   function addNewMob() {
-    try {
-      if (currentLine.length === 0) return;
+    if (currentLine.length === 0) return;
 
-      const newMobID = currentLine[0];
-      let mobExists = false;
+    const newMobID = currentLine[0];
+    let mobExists = false;
 
-      textInput.find((item: string) => {
-        const id = item.split(",")[0];
+    textInput.find((item: string) => {
+      const id = item.split(",")[0];
 
-        if (newMobID === id) {
-          mobExists = true;
-        }
-      });
-
-      if (mobExists) {
-        alert("You cant add a new mob with an already used ID!");
-        return;
+      if (newMobID === id) {
+        mobExists = true;
       }
+    });
 
-      let newMobData = [...currentLine.map((item: string) => item ?? "")];
-
-      const blankSpaces = 58 - currentLine.length;
-
-      for (let i = 0; i < blankSpaces; i++) {
-        newMobData.push("");
-      }
-
-      const tmp = [...textInput];
-      const newMob = newMobData.join(",");
-
-      tmp.push(newMob);
-
-      setTextInput(tmp);
-      setIsFiltered(false);
-      alert("Mob added at the end of the db!");
-
-      setCurrentLine([]);
-      setCurrentLineIndex(null);
-    } catch (error) {
-      console.log(error);
+    if (mobExists) {
+      alert("You cant add a new mob with an already used ID!");
+      return;
     }
+
+    let newMobData = [...currentLine.map((item: string) => item ?? "")];
+
+    const blankSpaces = 58 - currentLine.length;
+
+    for (let i = 0; i < blankSpaces; i++) {
+      newMobData.push("");
+    }
+
+    const tmp = [...textInput];
+    const newMob = newMobData.join(",");
+
+    tmp.push(newMob);
+
+    setTextInput(tmp);
+    setIsFiltered(false);
+    alert("Mob added at the end of the db!");
+
+    setCurrentLine([]);
+    setCurrentLineIndex(null);
+
+    !isChanged && setIsChanged(true);
   }
 
   function removeMob() {
-    try {
-      if (currentLineIndex === null) return;
+    if (currentLineIndex === null) return;
 
-      const tmp = [...textInput];
-      tmp.splice(currentLineIndex, 1);
+    const tmp = [...textInput];
+    tmp.splice(currentLineIndex, 1);
 
-      setTextInput(tmp);
+    setTextInput(tmp);
 
-      setCurrentLine([]);
-      setCurrentLineIndex(null);
+    setCurrentLine([]);
+    setCurrentLineIndex(null);
 
-      setIsFiltered(false);
-      alert("Mob removed from the db!");
-    } catch (error) {
-      console.log(error);
-    }
+    setIsFiltered(false);
+    alert("Mob removed from the db!");
+
+    !isChanged && setIsChanged(true);
   }
 
   function filterMob(value: string) {
@@ -149,25 +155,41 @@ export default function Home() {
     });
     setFilter(filteredArr);
     setIsFiltered(true);
-    console.log(filter);
+  }
+
+  function clearFields() {
+    setCurrentLine([]);
+    setCurrentLineIndex(null);
   }
 
   return (
-    <main className="h-full w-full py-20 px-10 flex flex-col gap-4 items-center text-white text-sm">
-      <h1 className="font-pixel text-5xl mb-4 text-white drop-shadow-[0.2rem_0.2rem_#2e2649]">
+    <main className="h-full w-full py-20 px-10 flex flex-col gap-4 items-center text-white text-sm relative">
+      <h1 className="font-pixel sm:text-4xl text-5xl text-white drop-shadow-[0.2rem_0.2rem_#2e2649]">
         Mob_db.txt
       </h1>
 
-      <div className="flex items-center justify-center gap-x-10 w-full h-[600px]">
+      {isChanged && (
+        <button
+          className="font-pixel flex h-10 justify-center my-2 items-center px-3 bg-pixel-orange cursor-pointer hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px] drop-shadow-[0.2rem_0.2rem_#2e2649]"
+          onClick={() => downloadDBTxt(textInput)}
+        >
+          DOWNLOAD NEW .TXT
+        </button>
+      )}
+
+      <div className="flex sm:flex-col xl:flex-col items-center sm:justify-normal xl:justify-normal justify-center gap-10 w-full h-full">
         <section
           id="currentTable"
-          className="xl:w-[1000px] w-3/5 h-full bg-pixel-orange pt-3"
+          className="w-[1000px] sm:w-[80vw] xl:w-[80vw] h-[680px] sm:min-h-[400px] xl:min-h-[400px] bg-pixel-orange pt-3 pb-1"
         >
-          <div className="bg-pixel-grey h-full w-full p-4">
-            <form id="itemsMenuTxt" className="flex items-center">
+          <div className="bg-pixel-grey h-full w-full overflow-hidden p-4">
+            <form
+              id="itemsMenuTxt"
+              className="flex items-center border-b-2 pb-2 border-b-pixel-orange"
+            >
               <label
                 htmlFor="textFile"
-                className="font-pixel flex h-10 justify-center items-center px-3 bg-pixel-orange cursor-pointer hover:bg-pixel-orange/70"
+                className="font-pixel flex h-10 justify-center items-center px-3 bg-pixel-orange cursor-pointer hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px]"
               >
                 SELECT
               </label>
@@ -182,25 +204,10 @@ export default function Home() {
                 type="text"
                 name="filter"
                 id="filter"
+                placeholder="MOB SEARCH"
                 onChange={(e) => filterMob(e.target.value)}
-                className="h-10 border-none w-[20vw] ml-auto focus:outline-none text-black p-3"
+                className="h-10 border-none ml-auto w-96 focus:outline-none text-black p-3 sm:w-[60%]"
               />
-              <div className="ml-3">
-                <button
-                  type="reset"
-                  className=" h-10 font-pixel px-4 bg-pixel-orange hover:bg-pixel-orange/70"
-                  onClick={() => removeMob()}
-                >
-                  -
-                </button>
-                <button
-                  type="reset"
-                  className="h-10 font-pixel px-4 bg-pixel-orange ml-3 hover:bg-pixel-orange/70"
-                  onClick={() => addNewMob()}
-                >
-                  +
-                </button>
-              </div>
             </form>
             <div
               id="itemList"
@@ -243,18 +250,39 @@ export default function Home() {
 
         <section
           id="editTable"
-          className="xl:w-[670px] w-2/5 h-full text-sm text-white  bg-pixel-orange pt-3 "
+          className="w-[670px] sm:w-[80vw] xl:w-[80vw] h-[680px] sm:min-h-[400px] xl:min-h-[400px] text-sm text-white  bg-pixel-orange pt-3 pb-1"
         >
-          <div className="bg-pixel-grey w-full h-full p-4 relative">
-            <button
-              className="hover:bg-gradient-to-r from-inherit absolute h-10 font-pixel px-3 bg-pixel-orange right-4 hover:bg-pixel-orange/70"
-              onClick={() => saveChanges()}
-            >
-              SAVE
-            </button>
+          <div className="bg-pixel-grey w-full h-full p-4 overflow-hidden">
+            <div className="w-full flex items-center justify-end gap-3 mb-2 sm:mb-6">
+              <button
+                className="w-20 h-10 font-pixel bg-pixel-orange hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px]"
+                onClick={() => clearFields()}
+              >
+                CLEAR
+              </button>
+              <button
+                className="w-[80px] h-10 font-pixel bg-pixel-orange  hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px]"
+                onClick={() => addNewMob()}
+              >
+                ADD
+              </button>
+              <button
+                className="w-[80px] h-10 font-pixel bg-pixel-orange  hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px]"
+                onClick={() => removeMob()}
+              >
+                DEL
+              </button>
+              <button
+                className="w-[80px] h-10 font-pixel bg-pixel-orange  hover:bg-pixel-orange/70 xl:text-[12px] sm:text-[8px]"
+                onClick={() => saveChanges()}
+              >
+                EDIT
+              </button>
+            </div>
+
             <div className="h-[90%] w-full overflow-x-hidden flex flex-col">
               <h3
-                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                className="mb-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
                 onClick={() =>
                   mobDataType === 1 ? setMobDataType(0) : setMobDataType(1)
                 }
@@ -263,65 +291,60 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
                 {mobLabelList.map((item: string, index: number) => (
-                  <span
-                    key={`mobPrimaryStats-${index}`}
-                    style={
-                      mobDataType === 1
-                        ? { display: "block" }
-                        : { display: "none" }
-                    }
-                  >
+                  <>
                     {index <= 19 && (
-                      <Input
-                        name={item}
-                        value={isChanged ? "" : currentLine[index]}
-                        label={item}
-                        handleChange={(value) => {
-                          const tmp = [...currentLine];
-
-                          tmp[index] = value;
-                          console.log(tmp);
-
-                          setCurrentLine(tmp);
-                        }}
-                      />
+                      <span
+                        key={`mobPrimaryStats-${index}`}
+                        style={
+                          mobDataType === 1
+                            ? { display: "block" }
+                            : { display: "none" }
+                        }
+                      >
+                        <Input
+                          name={item}
+                          value={currentLine[index]}
+                          label={item}
+                          handleChange={(value) =>
+                            inputHandleChange(value, index)
+                          }
+                        />
+                      </span>
                     )}
-                  </span>
+                  </>
                 ))}
               </div>
-
               <h3
-                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                className="mb-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
                 onClick={() =>
                   mobDataType === 2 ? setMobDataType(0) : setMobDataType(2)
                 }
               >
                 Secondary Stats
               </h3>
-              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
+              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2 ">
                 {mobLabelList.map((item: string, index: number) => (
-                  <span
-                    key={`mobSecondaryStats-${index}`}
-                    style={
-                      mobDataType === 2
-                        ? { display: "block" }
-                        : { display: "none" }
-                    }
-                  >
+                  <>
                     {index > 19 && index <= 37 && (
-                      <Input
-                        name={item}
-                        value={isChanged ? "" : currentLine[index]}
-                        label={item}
-                        handleChange={(value) => {
-                          const tmp = [...currentLine];
-
-                          tmp[index] = value;
-                          setCurrentLine(tmp);
-                        }}
-                      />
+                      <span
+                        key={`mobSecondaryStats-${index}`}
+                        style={
+                          mobDataType === 2
+                            ? { display: "block" }
+                            : { display: "none" }
+                        }
+                      >
+                        <Input
+                          name={item}
+                          value={currentLine[index]}
+                          label={item}
+                          handleChange={(value) =>
+                            inputHandleChange(value, index)
+                          }
+                        />
+                      </span>
                     )}
-                  </span>
+                  </>
                 ))}
               </div>
               <h3
@@ -334,43 +357,33 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
                 {mobLabelList.map((item: string, index: number) => (
-                  <span
-                    key={`mobPrimaryData-${index}`}
-                    style={
-                      mobDataType === 3
-                        ? { display: "block" }
-                        : { display: "none" }
-                    }
-                  >
+                  <>
                     {index > 37 && (
-                      <Input
-                        name={item}
-                        value={currentLine[index]}
-                        label={item}
-                        handleChange={(value) => {
-                          const tmp = [...currentLine];
-
-                          tmp[index] = value;
-                          console.log(tmp);
-                          setCurrentLine(tmp);
-                        }}
-                      />
+                      <span
+                        key={`mobPrimaryData-${index}`}
+                        style={
+                          mobDataType === 3
+                            ? { display: "block" }
+                            : { display: "none" }
+                        }
+                      >
+                        <Input
+                          name={item}
+                          value={currentLine[index]}
+                          label={item}
+                          handleChange={(value) =>
+                            inputHandleChange(value, index)
+                          }
+                        />
+                      </span>
                     )}
-                  </span>
+                  </>
                 ))}
               </div>
             </div>
           </div>
         </section>
       </div>
-      {isChanged && (
-        <button
-          className="h-10 my-4 text-4xl font-pixel px-3 text-pixel-orange ml-3 hover:text-pixel-orange/70"
-          onClick={() => downloadDBTxt(textInput)}
-        >
-          Download TXT
-        </button>
-      )}
     </main>
   );
 }
