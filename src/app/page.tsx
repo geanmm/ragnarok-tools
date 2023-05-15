@@ -2,6 +2,7 @@
 import Input from "@/components/inputProps";
 import { useState } from "react";
 import { mobLabelList } from "../components/labels";
+import React from "react";
 
 export default function Home() {
   const [textInput, setTextInput] = useState<any>([]);
@@ -163,8 +164,8 @@ export default function Home() {
   }
 
   return (
-    <main className="h-full w-full py-20 px-10 flex flex-col gap-4 items-center text-white text-sm relative">
-      <h1 className="font-pixel sm:text-4xl text-5xl text-white drop-shadow-[0.2rem_0.2rem_#2e2649]">
+    <main className="w-full flex flex-col gap-4 items-center text-white text-sm relative py-10">
+      <h1 className="font-pixel sm:text-3xl 2xl:text-4xl text-5xl text-white drop-shadow-[0.2rem_0.2rem_#2e2649]">
         Mob_db.txt
       </h1>
 
@@ -177,13 +178,13 @@ export default function Home() {
         </button>
       )}
 
-      <div className="flex sm:flex-col xl:flex-col items-center sm:justify-normal xl:justify-normal justify-center gap-10 w-full h-full">
+      <div className="flex xl:flex-col items-center sm:justify-normal xl:justify-normal justify-center gap-10 2xl:gap-5 w-full h-full">
         <section
           id="currentTable"
-          className="w-[1000px] sm:w-[80vw] xl:w-[80vw] h-[680px] sm:min-h-[400px] xl:min-h-[400px] bg-pixel-orange pt-3 pb-1"
+          className="w-[1000px] xl:w-[80vw] 2xl:w-[700px] 2xl:h-[450px] h-[680px] sm:min-h-[400px] xl:min-h-[400px] bg-pixel-orange pt-3 pb-1"
         >
           <div className="bg-pixel-grey h-full w-full overflow-hidden p-4">
-            <form
+            <div
               id="itemsMenuTxt"
               className="flex items-center border-b-2 pb-2 border-b-pixel-orange"
             >
@@ -208,7 +209,7 @@ export default function Home() {
                 onChange={(e) => filterMob(e.target.value)}
                 className="h-10 border-none ml-auto w-96 focus:outline-none text-black p-3 sm:w-[60%]"
               />
-            </form>
+            </div>
             <div
               id="itemList"
               className="h-[90%] w-full overflow-x-hidden block mt-4"
@@ -250,7 +251,7 @@ export default function Home() {
 
         <section
           id="editTable"
-          className="w-[670px] sm:w-[80vw] xl:w-[80vw] h-[680px] sm:min-h-[400px] xl:min-h-[400px] text-sm text-white  bg-pixel-orange pt-3 pb-1"
+          className="w-[670px] xl:w-[80vw] 2xl:w-[470px] 2xl:h-[450px] h-[680px] xl:min-h-[400px] text-sm text-white  bg-pixel-orange pt-3 pb-1"
         >
           <div className="bg-pixel-grey w-full h-full p-4 overflow-hidden">
             <div className="w-full flex items-center justify-end gap-3 mb-2 sm:mb-6">
@@ -291,10 +292,9 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
                 {mobLabelList.map((item: string, index: number) => (
-                  <>
+                  <React.Fragment key={`mobPrimaryStats-${index}`}>
                     {index <= 19 && (
                       <span
-                        key={`mobPrimaryStats-${index}`}
                         style={
                           mobDataType === 1
                             ? { display: "block" }
@@ -302,7 +302,7 @@ export default function Home() {
                         }
                       >
                         <Input
-                          name={item}
+                          name={`input-n-${index}`}
                           value={currentLine[index]}
                           label={item}
                           handleChange={(value) =>
@@ -311,23 +311,22 @@ export default function Home() {
                         />
                       </span>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
               <h3
-                className="mb-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
+                className="my-4 pb-2 w-auto text-lg border-b-2 border-pixel-orange font-pixel cursor-pointer"
                 onClick={() =>
                   mobDataType === 2 ? setMobDataType(0) : setMobDataType(2)
                 }
               >
                 Secondary Stats
               </h3>
-              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2 ">
+              <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] ">
                 {mobLabelList.map((item: string, index: number) => (
-                  <>
+                  <React.Fragment key={`mobPrimaryStats-${index}`}>
                     {index > 19 && index <= 37 && (
                       <span
-                        key={`mobSecondaryStats-${index}`}
                         style={
                           mobDataType === 2
                             ? { display: "block" }
@@ -335,7 +334,7 @@ export default function Home() {
                         }
                       >
                         <Input
-                          name={item}
+                          name={`input-n-${index}`}
                           value={currentLine[index]}
                           label={item}
                           handleChange={(value) =>
@@ -344,7 +343,7 @@ export default function Home() {
                         />
                       </span>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
               <h3
@@ -357,10 +356,9 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-[repeat(auto-fit,_minmax(210px,_max-content))] gap-x-2">
                 {mobLabelList.map((item: string, index: number) => (
-                  <>
+                  <React.Fragment key={`mobPrimaryStats-${index}`}>
                     {index > 37 && (
                       <span
-                        key={`mobPrimaryData-${index}`}
                         style={
                           mobDataType === 3
                             ? { display: "block" }
@@ -368,7 +366,7 @@ export default function Home() {
                         }
                       >
                         <Input
-                          name={item}
+                          name={`input-n-${index}`}
                           value={currentLine[index]}
                           label={item}
                           handleChange={(value) =>
@@ -377,7 +375,7 @@ export default function Home() {
                         />
                       </span>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
             </div>

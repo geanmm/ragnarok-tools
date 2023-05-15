@@ -14,6 +14,7 @@ const Input: FC<InputProps> = ({ name, label, value, handleChange }) => {
         {label}
       </label>
       <input
+        id={name}
         onClick={() => console.log(value)}
         type="text"
         value={value ?? ""}
